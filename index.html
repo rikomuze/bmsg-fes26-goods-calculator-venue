@@ -38,7 +38,7 @@
 *{box-sizing:border-box}
 [hidden]{display:none!important}
 img{max-width:100%}
-html{scroll-behavior:smooth}
+html{scroll-behavior:smooth;overflow-x:clip}
 body{
   margin:0;
   background:
@@ -82,7 +82,8 @@ a{color:inherit}
 .pill-link:hover{border-color:var(--ice)}
 
 /* ---------- レイアウト ---------- */
-.layout{display:grid;gap:22px;margin-top:18px}
+.layout{display:grid;grid-template-columns:minmax(0,1fr);gap:22px;margin-top:18px}
+.layout>*{min-width:0}
 @media(min-width:900px){
   .layout{grid-template-columns:minmax(0,1fr) 360px;align-items:start}
   .receipt-col{position:sticky;top:calc(16px + env(safe-area-inset-top,0px))}
@@ -142,15 +143,29 @@ a{color:inherit}
 .variants-head{display:flex;justify-content:space-between;align-items:center;gap:8px;flex-wrap:wrap;font-size:11.5px;color:var(--mist)}
 .variants-head b{font-family:var(--mono);color:var(--chrome);font-weight:600}
 .clear{min-height:34px;padding:4px 12px;border-radius:999px;border:1px solid var(--line);background:transparent;font-size:11.5px;cursor:pointer}
-.v-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(150px,1fr));gap:6px}
-.v-cell{display:flex;align-items:center;justify-content:space-between;gap:6px;padding:4px 4px 4px 10px;border-radius:4px;background:var(--panel-2)}
-.v-cell.on{box-shadow:inset 0 0 0 1px rgba(159,208,255,.55)}
-.v-name{font-size:12px;font-weight:700;min-width:0;overflow-wrap:anywhere;line-height:1.35}
-.v-ctrl{display:flex;align-items:center;gap:2px;flex:0 0 auto}
-.v-ctrl .step{width:36px;height:36px;font-size:16px}
-.v-count{min-width:22px;text-align:center;font-family:var(--mono);font-weight:600;font-variant-numeric:tabular-nums}
+.v-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(104px,1fr));gap:6px}
+.v-cell{display:grid;justify-items:center;gap:4px;padding:8px 4px 6px;border-radius:6px;background:var(--panel-2);border:1px solid transparent}
+.v-cell.on{border-color:rgba(159,208,255,.55);background:rgba(159,208,255,.07)}
+.v-name{font-size:12.5px;font-weight:700;line-height:1.3;text-align:center;word-break:keep-all;overflow-wrap:normal;white-space:nowrap}
+.v-ctrl{display:flex;align-items:center;gap:2px}
+.v-ctrl .step{width:34px;height:34px;font-size:16px}
+.v-count{min-width:24px;text-align:center;font-family:var(--mono);font-size:15px;font-weight:600;font-variant-numeric:tabular-nums}
 .v-cell.on .v-count{color:var(--ice)}
 .v-count.max{color:var(--alert)}
+/* メンバー31種：グループごとの折りたたみ */
+.m-group{border-radius:6px;background:var(--panel-2)}
+.m-head{display:flex;align-items:center;gap:8px;padding:4px 6px 4px 4px}
+.m-toggle{flex:1;min-width:0;display:flex;align-items:center;gap:8px;min-height:44px;padding:4px 8px;border:0;background:transparent;text-align:left;cursor:pointer}
+.m-toggle .chev{width:8px;height:8px;border-right:2px solid var(--mist);border-bottom:2px solid var(--mist);transform:rotate(-45deg);transition:transform .15s;flex:0 0 auto}
+.m-group.open .m-toggle .chev{transform:rotate(45deg)}
+.m-toggle .gname{font-weight:700;font-size:13px}
+.m-toggle .gmeta{font-size:11px;color:var(--mist)}
+.m-toggle .gsel{margin-left:auto;font-family:var(--mono);font-size:11px;color:var(--ink);background:var(--ice);border-radius:999px;padding:0 8px}
+.m-all{flex:0 0 auto;min-height:34px;padding:4px 10px;border-radius:999px;border:1px solid var(--line);background:transparent;font-size:11px;font-weight:700;cursor:pointer;white-space:nowrap}
+.m-all:hover{border-color:var(--ice)}
+.m-body{padding:0 6px 8px}
+.m-body .v-cell{background:var(--panel)}
+.m-tools{display:flex;gap:6px;flex-wrap:wrap}
 
 /* ---------- 整理券レシート ---------- */
 .receipt-wrap{padding:14px 10px 18px;background:var(--void);border-radius:8px}
@@ -299,7 +314,15 @@ var T = {"b1_0": "data:image/webp;base64,UklGRuQGAABXRUJQVlA4INgGAADQHACdASpwAHA
 /* ---------- 選択肢 ---------- */
 var SIZE4=['S','M','L','XL'], SIZE_ML=['M','L'], SIZE3=['S','M','L'];
 var GROUPS=['BMSG','BE:FIRST','MAZZEL','STARGLOW','HANA'];
-var MEMBERS31=['SKY-HI','Novel Core','SOTA','SHUNTO','MANATO','RYUHEI','JUNON','LEO','KAIRYU','NAOYA','RAN','SEITO','RYUKI','TAKUTO','HAYATO','EIKI','Aile The Shota','REIKO','RUI','TAIKI','KANON','GOICHI','ADAM','CHIKA','NAOKO','JISOO','YURI','MOMOKA','KOHARU','MAHINA','ふみの'];
+var MEMBER_GROUPS=[
+  {name:'SOLO ARTISTS',members:['SKY-HI','Novel Core','Aile The Shota','REIKO','ふみの']},
+  {name:'BE:FIRST',members:['SOTA','SHUNTO','MANATO','RYUHEI','JUNON','LEO']},
+  {name:'MAZZEL',members:['KAIRYU','NAOYA','RAN','SEITO','RYUKI','TAKUTO','HAYATO','EIKI']},
+  {name:'STARGLOW',members:['RUI','TAIKI','KANON','GOICHI','ADAM']},
+  {name:'HANA',members:['CHIKA','NAOKO','JISOO','YURI','MOMOKA','KOHARU','MAHINA']}
+];
+var MEMBERS31=[].concat.apply([],MEMBER_GROUPS.map(function(g){return g.members}));
+var _unused=['SKY-HI','Novel Core','SOTA','SHUNTO','MANATO','RYUHEI','JUNON','LEO','KAIRYU','NAOYA','RAN','SEITO','RYUKI','TAKUTO','HAYATO','EIKI','Aile The Shota','REIKO','RUI','TAIKI','KANON','GOICHI','ADAM','CHIKA','NAOKO','JISOO','YURI','MOMOKA','KOHARU','MAHINA','ふみの'];
 
 /* ---------- 商品データ(告知画像より) limit:null = 上限の告知なし ---------- */
 var CATS=[
@@ -332,7 +355,7 @@ var G=[
  {id:'backpack',cat:'fes',img:'c3_0',name:'バックパック',price:6800,limit:3},
  {id:'body-bag',cat:'fes',img:'c3_1',name:'ボディバッグ',price:3500,limit:3},
  {id:'cool-pouch',cat:'fes',img:'c3_2',name:'保冷ポーチ',price:2500,limit:3},
- {id:'photocard-badge',cat:'fes',img:'c3_3',name:'フォトカード・缶バッジセット',price:1400,limit:null,variants:MEMBERS31,vlabel:'メンバー／アーティスト',note:'全31種'},
+ {id:'photocard-badge',cat:'fes',img:'c3_3',name:'フォトカード・缶バッジセット',price:1400,limit:null,variants:MEMBERS31,groups:MEMBER_GROUPS,vlabel:'メンバー／アーティスト',note:'全31種'},
  {id:'cookie',cat:'fes',img:'c3_4',name:'クッキー',price:3800,limit:null},
  {id:'baseball-shirt',cat:'fes',img:'c4_0',name:'Baseball Shirt',price:9800,limit:null,variants:SIZE_ML,vlabel:'サイズ'},
  {id:'windbreaker',cat:'fes',img:'c4_1',name:'Zip Windbreaker Jacket',price:13000,limit:null,variants:SIZE_ML,vlabel:'サイズ'},
@@ -389,6 +412,8 @@ try{
 function save(){ try{localStorage.setItem(STORE_KEY,JSON.stringify(Q))}catch(e){} }
 
 var current='all';
+var openSet={};
+G.forEach(function(g){ if(g.groups) g.groups.forEach(function(gr){ if(gr.members.some(function(v){return Q[g.id][v]>0})) openSet[g.id+'|'+gr.name]=true; }); });
 
 /* ---------- ユーティリティ ---------- */
 function yen(n){return '¥'+Number(n).toLocaleString('ja-JP')}
@@ -449,16 +474,32 @@ function renderItem(g){
   h+='</div>';
   if(g.variants){
     var m=Q[g.id], kinds=0, tot=0; for(var k in m){ if(m[k]>0){kinds++;tot+=m[k]} }
-    h+='<div class="variants"><div class="variants-head"><span>'+esc(g.vlabel)+'を選択｜選択中 <b>'+kinds+'</b>種 / 合計 <b>'+tot+'</b>点</span>'+
-       (tot?'<button type="button" class="clear" data-act="clear" data-id="'+g.id+'">クリア</button>':'')+'</div><div class="v-grid">'+
-       g.variants.map(function(v){var n=m[v], full=n>=maxOf(g);
-         return '<div class="v-cell'+(n>0?' on':'')+'"><span class="v-name">'+esc(v)+'</span><span class="v-ctrl">'+
-           '<button type="button" class="step" data-act="vdec" data-id="'+g.id+'" data-v="'+esc(v)+'" aria-label="'+esc(v)+'を減らす"'+(n<=0?' disabled':'')+'>−</button>'+
-           '<span class="v-count'+(g.limit&&full?' max':'')+'">'+n+'</span>'+
-           '<button type="button" class="step" data-act="vinc" data-id="'+g.id+'" data-v="'+esc(v)+'" aria-label="'+esc(v)+'を増やす"'+(full?' disabled':'')+'>＋</button></span></div>';
-       }).join('')+'</div></div>';
+    h+='<div class="variants"><div class="variants-head"><span>'+esc(g.vlabel)+'を選択｜選択中 <b>'+kinds+'</b>種 / 合計 <b>'+tot+'</b>点</span><span class="m-tools">'+
+       (g.groups?'<button type="button" class="clear" data-act="openall" data-id="'+g.id+'">'+(g.groups.every(function(gr){return openSet[g.id+'|'+gr.name]})?'すべて閉じる':'すべて開く')+'</button>':'')+
+       (tot?'<button type="button" class="clear" data-act="clear" data-id="'+g.id+'">クリア</button>':'')+'</span></div>';
+    if(g.groups){
+      h+=g.groups.map(function(gr){
+        var key=g.id+'|'+gr.name, sel=gr.members.reduce(function(s,v){return s+m[v]},0), open=!!openSet[key];
+        return '<div class="m-group'+(open?' open':'')+'"><div class="m-head">'+
+          '<button type="button" class="m-toggle" data-act="toggle" data-id="'+g.id+'" data-g="'+esc(gr.name)+'" aria-expanded="'+open+'">'+
+          '<span class="chev" aria-hidden="true"></span><span class="gname">'+esc(gr.name)+'</span><span class="gmeta">'+gr.members.length+'名</span>'+
+          (sel?'<span class="gsel">'+sel+'点</span>':'')+'</button>'+
+          '<button type="button" class="m-all" data-act="gall" data-id="'+g.id+'" data-g="'+esc(gr.name)+'" aria-label="'+esc(gr.name)+'の全員を1つずつ増やす">全員 ＋1</button></div>'+
+          (open?'<div class="m-body">'+tiles(g,gr.members)+'</div>':'')+'</div>';
+      }).join('');
+    } else h+=tiles(g,g.variants);
+    h+='</div>';
   }
   return h+'</div>';
+}
+function tiles(g,list){
+  var m=Q[g.id];
+  return '<div class="v-grid">'+list.map(function(v){var n=m[v], full=n>=maxOf(g), lb=g.name+' '+v;
+    return '<div class="v-cell'+(n>0?' on':'')+'"><span class="v-name">'+esc(v)+'</span><span class="v-ctrl">'+
+      '<button type="button" class="step" data-act="vdec" data-id="'+g.id+'" data-v="'+esc(v)+'" aria-label="'+esc(lb)+'を減らす"'+(n<=0?' disabled':'')+'>−</button>'+
+      '<span class="v-count'+(g.limit&&full?' max':'')+'">'+n+'</span>'+
+      '<button type="button" class="step" data-act="vinc" data-id="'+g.id+'" data-v="'+esc(v)+'" aria-label="'+esc(lb)+'を増やす"'+(full?' disabled':'')+'>＋</button></span></div>';
+  }).join('')+'</div>';
 }
 function renderShelf(){
   var cats=current==='all'?CATS:CATS.filter(function(c){return c.id===current});
@@ -500,6 +541,9 @@ shelf.addEventListener('click',function(e){
   if(a==='inc'||a==='dec') Q[g.id]=clamp(Q[g.id]+(a==='inc'?1:-1),g);
   else if(a==='vinc'||a==='vdec') Q[g.id][b.dataset.v]=clamp(Q[g.id][b.dataset.v]+(a==='vinc'?1:-1),g);
   else if(a==='clear') g.variants.forEach(function(v){Q[g.id][v]=0});
+  else if(a==='toggle'){ var k=g.id+'|'+b.dataset.g; openSet[k]=!openSet[k]; }
+  else if(a==='openall'){ var all=g.groups.every(function(gr){return openSet[g.id+'|'+gr.name]}); g.groups.forEach(function(gr){openSet[g.id+'|'+gr.name]=!all}); }
+  else if(a==='gall'){ var gr=g.groups.find(function(x){return x.name===b.dataset.g}); gr.members.forEach(function(v){Q[g.id][v]=clamp(Q[g.id][v]+1,g)}); openSet[g.id+'|'+gr.name]=true; }
   var sel=b.getAttribute('aria-label'); var y=window.scrollY;
   update();
   // 再描画後もフォーカスを同じボタンに戻す
