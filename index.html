@@ -218,11 +218,42 @@ a{color:inherit}
 .dock-total .cap{font-size:11px;color:var(--mist);font-weight:700}
 .dock-total strong{font-family:var(--mono);font-size:21px;font-weight:600;display:inline-block}
 .dock-total .pts{font-family:var(--mono);font-size:12px;color:var(--mist)}
-.dock .btn{min-height:46px;padding:8px 18px}
+.dock .btn{min-height:46px;padding:8px 14px}
 @media(prefers-reduced-motion:no-preference){
   .pop{animation:pop .3s ease}
   @keyframes pop{45%{transform:scale(1.12)}}
 }
+
+/* ---------- レジで見せる注文リスト（白地・大きい文字で、スタッフさんが読みやすいように） ---------- */
+.dock-btns{display:flex;gap:8px;flex-shrink:0}
+.dock-total .cap,.dock-total .pts{white-space:nowrap}
+@media(max-width:400px){.dock-total .cap{display:none}.dock-total strong{font-size:19px}}
+.dock .btn.ghost{background:transparent;color:var(--chrome)}
+.order-sheet{position:fixed;inset:0;z-index:100;background:#fff;color:#111;display:flex;flex-direction:column;
+  padding:calc(12px + env(safe-area-inset-top,0px)) 18px calc(12px + env(safe-area-inset-bottom,0px));font-family:var(--sans,inherit)}
+.order-sheet[hidden]{display:none}
+.os-head{display:flex;justify-content:space-between;align-items:center;gap:10px;border-bottom:3px solid #111;padding-bottom:10px}
+.os-head h2{margin:0;font-size:20px;font-weight:800;letter-spacing:.06em}
+.os-head small{display:block;font-size:11px;font-weight:700;letter-spacing:.12em;color:#555}
+.os-close{min-height:48px;min-width:48px;padding:0 16px;border:2px solid #111;border-radius:999px;background:#fff;color:#111;font-size:15px;font-weight:800;cursor:pointer}
+.os-tabs{display:flex;gap:6px;overflow-x:auto;padding:10px 0 2px;scrollbar-width:none}
+.os-tabs::-webkit-scrollbar{display:none}
+.os-tabs button{flex:0 0 auto;min-height:40px;padding:4px 12px;border:2px solid #111;border-radius:999px;background:#fff;color:#111;font-size:13px;font-weight:800;cursor:pointer;white-space:nowrap}
+.os-tabs button.active{background:#111;color:#fff}
+.os-tabs button .c{font-weight:600;margin-left:4px;opacity:.75}
+.os-list{flex:1;overflow:auto;padding:4px 0;-webkit-overflow-scrolling:touch}
+.os-cat{font-size:12px;font-weight:800;letter-spacing:.12em;color:#555;padding:14px 2px 2px}
+.os-row{display:grid;grid-template-columns:minmax(0,1fr) auto;gap:12px;align-items:center;width:100%;padding:12px 2px;border:0;border-bottom:1px solid #ddd;background:none;color:#111;text-align:left;cursor:pointer;font:inherit}
+.os-row .n{font-size:clamp(17px,4.8vw,22px);font-weight:800;line-height:1.4;overflow-wrap:anywhere}
+.os-row .v{display:inline-block;margin-left:6px;padding:0 8px;border:2px solid #111;border-radius:6px;font-size:.85em;vertical-align:1px}
+.os-row .p{display:block;font-size:13px;font-weight:600;color:#555;font-family:var(--mono)}
+.os-row .q{font-size:clamp(26px,7.4vw,34px);font-weight:800;font-family:var(--mono);white-space:nowrap}
+.os-row.done{opacity:.3}
+.os-row.done .n{text-decoration:line-through}
+.os-foot{border-top:3px solid #111;padding-top:10px;display:flex;justify-content:space-between;align-items:baseline;gap:10px}
+.os-foot .osl{font-size:16px;font-weight:800}
+.os-foot .osr{font-size:clamp(30px,8.4vw,40px);font-weight:800;font-family:var(--mono)}
+.os-hint{margin:6px 0 0;font-size:12px;color:#555}
 
 /* ---------- フッター ---------- */
 .home-link{display:block;width:fit-content;margin:36px auto 0;padding:10px 6px;font-weight:700;text-decoration:none;color:var(--chrome)}
@@ -230,6 +261,7 @@ a{color:inherit}
 footer{margin:20px auto 20px;max-width:560px;font-size:11.5px;color:var(--mist);text-align:center;line-height:1.9}
 footer p{margin:0 0 6px}
 </style>
+<script src="https://rikomuze.github.io/muze-tool-box/assets/app-back.js" defer></script>
 </head>
 <body>
 
@@ -272,7 +304,8 @@ footer p{margin:0 0 6px}
         </div>
       </div>
       <div class="actions">
-        <button id="imgBtn" type="button" class="btn primary">画像にする</button>
+        <button id="orderBtn" type="button" class="btn primary">レジで見せる注文リスト</button>
+        <button id="imgBtn" type="button" class="btn">画像にする</button>
         <button id="copyBtn" type="button" class="btn">テキストでコピー</button>
         <button id="resetBtn" type="button" class="btn quiet">すべてリセット</button>
       </div>
@@ -292,8 +325,22 @@ footer p{margin:0 0 6px}
 <div class="dock" role="region" aria-label="合計">
   <div class="dock-inner">
     <div class="dock-total"><span class="cap">合計</span><strong id="dYen">¥0</strong><span class="pts" id="dCount">0点</span></div>
-    <button type="button" id="dockBtn" class="btn primary">内訳を見る</button>
+    <div class="dock-btns">
+      <button type="button" id="dockBtn" class="btn ghost">内訳</button>
+      <button type="button" id="dockOrder" class="btn primary">レジで見せる</button>
+    </div>
   </div>
+</div>
+
+<div class="order-sheet" id="orderSheet" role="dialog" aria-modal="true" aria-labelledby="osTitle" hidden>
+  <div class="os-head">
+    <h2 id="osTitle"><small>BMSG FES’26</small>注文リスト</h2>
+    <button type="button" class="os-close" id="osClose">閉じる</button>
+  </div>
+  <div class="os-tabs" id="osTabs" role="tablist" aria-label="売り場"></div>
+  <div class="os-list" id="osList"></div>
+  <div class="os-foot"><span class="osl" id="osCount">0点</span><span class="osr" id="osTotal">¥0</span></div>
+  <p class="os-hint">スタッフさんに画面を見せて注文できます。受け取った行をタップすると薄くなります。</p>
 </div>
 
 <div class="overlay" id="overlay" hidden>
@@ -560,6 +607,63 @@ tabsEl.addEventListener('click',function(e){
 document.getElementById('dockBtn').addEventListener('click',function(){
   document.getElementById('receiptCol').scrollIntoView({behavior:'smooth',block:'start'});
 });
+
+/* ---------- レジで見せる注文リスト ---------- */
+var sheet=document.getElementById('orderSheet'), osTab='all', osDone={}, lastFocus=null, wakeLock=null;
+function sheetLines(){
+  var out=[];
+  G.forEach(function(g){
+    if(g.variants){ g.variants.forEach(function(v){ var c=Q[g.id][v]; if(c>0) out.push({id:g.id+'|'+v,cat:g.cat,name:g.name,v:v,n:c,price:g.price,unit:unit(g)}); }); }
+    else if(Q[g.id]>0) out.push({id:g.id,cat:g.cat,name:g.name,v:'',n:Q[g.id],price:g.price,unit:unit(g)});
+  });
+  return out;
+}
+function openSheet(){
+  var ls=sheetLines();
+  if(!ls.length){ status('先に商品を選んでください'); document.getElementById('receiptCol').scrollIntoView({behavior:'smooth',block:'start'}); return; }
+  lastFocus=document.activeElement; osDone={};
+  var cats=ls.map(function(l){return l.cat}).filter(function(c,i,a){return a.indexOf(c)===i});
+  if(osTab!=='all'&&cats.indexOf(osTab)<0) osTab='all';
+  renderSheet(); sheet.hidden=false; document.body.style.overflow='hidden';
+  document.getElementById('osClose').focus();
+  try{ if(navigator.wakeLock) navigator.wakeLock.request('screen').then(function(w){wakeLock=w}).catch(function(){}); }catch(e){}
+}
+function closeSheet(){
+  sheet.hidden=true; document.body.style.overflow='';
+  try{ if(wakeLock){wakeLock.release(); wakeLock=null;} }catch(e){}
+  if(lastFocus) try{lastFocus.focus()}catch(e){}
+}
+function renderSheet(){
+  var ls=sheetLines();
+  var cats=CATS.filter(function(c){return ls.some(function(l){return l.cat===c.id})});
+  var tabs=document.getElementById('osTabs');
+  if(cats.length>1){
+    var cnt=function(id){return ls.filter(function(l){return id==='all'||l.cat===id}).reduce(function(s,l){return s+l.n},0)};
+    tabs.innerHTML=[{id:'all',name:'すべて'}].concat(cats).map(function(c){
+      return '<button type="button" role="tab" data-tab="'+c.id+'" aria-selected="'+(osTab===c.id)+'" class="'+(osTab===c.id?'active':'')+'">'+esc(c.name)+'<span class="c">'+cnt(c.id)+'</span></button>';
+    }).join('');
+    tabs.hidden=false;
+  } else { tabs.innerHTML=''; tabs.hidden=true; osTab='all'; }
+  var show=ls.filter(function(l){return osTab==='all'||l.cat===osTab});
+  var html='', last='';
+  show.forEach(function(l){
+    if(osTab==='all'&&cats.length>1&&l.cat!==last){ last=l.cat; html+='<div class="os-cat">'+esc(catName[l.cat])+'</div>'; }
+    html+='<button type="button" class="os-row'+(osDone[l.id]?' done':'')+'" data-done="'+esc(l.id)+'">'+
+      '<span><span class="n">'+esc(l.name)+(l.v?'<span class="v">'+esc(l.v)+'</span>':'')+'</span><span class="p">'+yen(l.price)+'</span></span>'+
+      '<span class="q">×'+l.n+'</span></button>';
+  });
+  document.getElementById('osList').innerHTML=html;
+  var n=show.reduce(function(s,l){return s+l.n},0), sum=show.reduce(function(s,l){return s+l.n*l.price},0);
+  document.getElementById('osCount').textContent=(osTab==='all'?'':catName[osTab]+'　')+n+'点';
+  document.getElementById('osTotal').textContent=yen(sum);
+}
+document.getElementById('osTabs').addEventListener('click',function(e){var b=e.target.closest('[data-tab]'); if(!b) return; osTab=b.dataset.tab; renderSheet();});
+document.getElementById('osList').addEventListener('click',function(e){var b=e.target.closest('[data-done]'); if(!b) return; var id=b.dataset.done; osDone[id]=!osDone[id]; b.classList.toggle('done',osDone[id]);});
+document.getElementById('osClose').addEventListener('click',closeSheet);
+document.getElementById('orderBtn').addEventListener('click',openSheet);
+document.getElementById('dockOrder').addEventListener('click',openSheet);
+document.addEventListener('keydown',function(e){ if(e.key==='Escape'&&!sheet.hidden) closeSheet(); });
+document.addEventListener('visibilitychange',function(){ if(!sheet.hidden&&document.visibilityState==='visible'&&navigator.wakeLock) navigator.wakeLock.request('screen').then(function(w){wakeLock=w}).catch(function(){}); });
 
 /* リセット(2回押しで確定) */
 var resetBtn=document.getElementById('resetBtn'), armTimer;
