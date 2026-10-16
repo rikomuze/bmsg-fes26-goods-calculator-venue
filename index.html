@@ -9,7 +9,7 @@
 <meta property="og:description" content="公演当日のグッズ購入予定から合計金額・点数・内訳を自動計算する非公式ファンメイドツール">
 <meta property="og:type" content="website">
 <meta name="twitter:card" content="summary">
-<title>BMSG FES’26 当日グッズ計算機</title>
+<title>【終了】BMSG FES’26 当日グッズ計算機</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Unbounded:wght@500;700&family=Zen+Kaku+Gothic+New:wght@400;500;700&family=IBM+Plex+Mono:wght@500;600&display=swap" rel="stylesheet">
@@ -255,6 +255,13 @@ a{color:inherit}
 .os-foot .osr{font-size:clamp(30px,8.4vw,40px);font-weight:800;font-family:var(--mono)}
 .os-hint{margin:6px 0 0;font-size:12px;color:#555}
 
+/* ---------- 終了のお知らせ（アーカイブ） ---------- */
+.ended{margin:12px 0 4px;padding:12px 14px;border:1px solid var(--line);border-left:3px solid var(--ice);background:var(--panel-2);border-radius:10px;font-size:13px;line-height:1.7}
+.ended strong{display:block;color:var(--chrome)}
+.ended span{display:block;color:var(--mist)}
+.ended a{display:inline-block;margin-top:4px;padding:6px 0;font-weight:700;color:var(--ice);text-decoration:none}
+.ended a:hover{text-decoration:underline}
+
 /* ---------- フッター ---------- */
 .home-link{display:block;width:fit-content;margin:36px auto 0;padding:10px 6px;font-weight:700;text-decoration:none;color:var(--chrome)}
 .home-link:hover{color:var(--ice)}
@@ -269,6 +276,11 @@ footer p{margin:0 0 6px}
 <canvas id="sky" aria-hidden="true"></canvas>
 
 <div class="shell">
+  <div class="ended" role="note">
+    <strong>BMSG FES’26（2026.10.10〜10.12）は終了しました。</strong>
+    <span>この計算機は記録として残しています。入力した内容はそのまま見られますが、価格・購入制限は当時のものです。</span>
+    <a href="https://rikomuze.github.io/muze-tool-box/">MUZE TOOL BOXへ</a>
+  </div>
   <header class="intro">
     <div class="eyebrow">2026.10.10 — 10.12 / ODAIBA</div>
     <h1>BMSG FES’26<span class="jp">当日グッズ計算機</span></h1>
